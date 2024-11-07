@@ -2,65 +2,63 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList, ImageBackground } from 'react-native';
 
 export default function App() {
-  const [text, setText] = useState('');
-  const [goals, setGoals] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingIndex, setEditingIndex] = useState(null);
+  const [texte, setText] = useState('');
+  const [objectifs, setObjectifs] = useState([]);
+  const [enEdition, setEnEdition] = useState(false);
+  const [indexEdition, setIndexEdition] = useState(null);
 
-  const addOrEditGoal = () => {
-    if (text.trim()) {
-      if (isEditing && editingIndex !== null) {
-        const updatedGoals = [...goals];
-        updatedGoals[editingIndex] = text;
-        setGoals(updatedGoals);
-        setIsEditing(false);
-        setEditingIndex(null);
+  const ajouterOuEditer = () => {
+    if (texte.trim()) {
+      if (enEdition && indexEdition !== null) {
+        const nouveauxObjectifs = [...objectifs];
+        nouveauxObjectifs[indexEdition] = texte;
+        setObjectifs(nouveauxObjectifs);
+        setEnEdition(false);
+        setIndexEdition(null);
       } else {
-        setGoals(currentGoals => [...currentGoals, text]);
+        setObjectifs(objectifsActuels => [...objectifsActuels, texte]);
       }
       setText('');
     }
   };
 
-  const startEditingGoal = (index) => {
-    setText(goals[index]);
-    setIsEditing(true);
-    setEditingIndex(index);
+  const edit = (index) => {
+    setText(objectifs[index]);
+    setEnEdition(true);
+    setIndexEdition(index);
   };
 
   const suppr = (index) => {
-    setGoals(currentGoals => currentGoals.filter((goal, goalIndex) => goalIndex !== index));
-    if (isEditing && editingIndex === index) {
-      setIsEditing(false);
+    setObjectifs(objectifsActuels => objectifsActuels.filter((_, i) => i !== index));
+    if (enEdition && indexEdition === index) {
+      setEnEdition(false);
       setText('');
     }
   };
 
   return (
-    <ImageBackground source={require('./assets/bg.jpg')} style={styles.backgroundImage}>
+    <ImageBackground source={require('./assets/bg.jpg')} style={styles.bg}>
       <View style={styles.container}>
-        <View style={styles.inputContainer}>
+        <View style={styles.containerInput}>
           <TextInput
             style={styles.input}
-            value={text}
+            value={texte}
             onChangeText={setText}
-            placeholder="Ajouter ou modifier un objectif"
+            placeholder="Ajouter un objectif"
           />
-          <TouchableOpacity style={styles.addButton} onPress={addOrEditGoal}>
-            <Text style={styles.addButtonText}>{isEditing ? 'Modifier' : '\u2713'}</Text>
+          <TouchableOpacity style={styles.add} onPress={ajouterOuEditer}>
+            <Text> {'\u2713'} </Text>
           </TouchableOpacity>
         </View>
         <FlatList
-          data={goals}
+          data={objectifs}
           renderItem={({ item, index }) => (
-            <View style={styles.list}>
-              <TouchableOpacity onPress={() => startEditingGoal(index)}>
-                <Text style={styles.text}>{item}</Text>
-              </TouchableOpacity>
+            <TouchableOpacity onPress={() => edit(index)} style={styles.liste}>
+              <Text style={styles.texte}>{item}</Text>
               <TouchableOpacity onPress={() => suppr(index)}>
-                <Text style={styles.deleteText}>{'\u2715'}</Text>
+                <Text style={styles.suppr}>{'\u2715'}</Text>
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           )}
           keyExtractor={(item, index) => index.toString()}
         />
@@ -70,7 +68,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
+  bg: {
     flex: 1,
     resizeMode: 'cover',
   },
@@ -80,7 +78,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start', 
     paddingTop: 50, 
   },
-  inputContainer: {
+  containerInput: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -91,24 +89,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 10,
     marginRight: 10,
+    borderRadius: 5,
+    borderColor: '#007BFF',
+    backgroundColor: '#f0f8ff',
   },
-  addButton: {
+  add: {
     backgroundColor: '#007BFF',
     padding: 10,
     borderRadius: 5,
   },
-  addButtonText: {
-    color: '#fff',
-  },
-  list: {
+  liste: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#007BFF',
+    borderRadius: 5,
+    backgroundColor: '#f0f8ff',
   },
-  text: {
-    fontSize: 18,
+  texte: {
+    fontSize: 14,
   },
-  deleteText: {
+  suppr: {
     color: 'red',
   },
 });

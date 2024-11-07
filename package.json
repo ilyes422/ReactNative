@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@react-native-community/cli-server-api": "latest",
+    "expo": "^51.0.38",
+    "metro": "^0.81.0",
+    "react-native": "^0.76.1"
+  }
+}
