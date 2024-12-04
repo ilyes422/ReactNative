@@ -3,135 +3,116 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator,
 import * as Location from 'expo-location';
 import axios from 'axios';
 
-const WeatherCard = ({ weatherData }) => {
+const CarteMeteo = ({ dateMeteo }) => {
   return (
-    <View style={styles.weatherCard}>
-      <Text style={styles.city}>{weatherData.name}</Text>
-      <Text style={styles.temperature}>{Math.round(weatherData.main.temp)}°C</Text>
-      <Text style={styles.description}>{weatherData.weather[0].description}</Text>
-      <Image source={{ uri: `https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png` }} style={styles.icon} />
+    <View style={styles.carteMeteo}>
+      <Text style={styles.ville}>{dateMeteo.name}</Text>
+      <Text style={styles.temperature}>{Math.round(dateMeteo.main.temp)}°C</Text>
+      <Text style={styles.description}>{dateMeteo.weather[0].description}</Text>
+      <Image source={{ uri: `https://openweathermap.org/img/wn/${dateMeteo.weather[0].icon}@2x.png` }} style={styles.icone} />
     </View>
   );
 };
 
-const ForecastCard = ({ forecast }) => {
+const CartePrevision = ({ prevision }) => {
   return (
-    <View style={styles.forecastItem}>
-      <Text style={styles.forecastTime}>{forecast.dt_txt}</Text>
-      <Text style={styles.forecastTemp}>{Math.round(forecast.main.temp)}°C</Text>
-      <Text style={styles.forecastDescription}>{forecast.weather[0].description}</Text>
-      <Image source={{ uri: `https://openweathermap.org/img/wn/${forecast.weather[0].icon}@2x.png` }} style={styles.icon} />
+    <View style={styles.elementPrevision}>
+      <Text style={styles.heurePrevision}>{prevision.dt_txt}</Text>
+      <Text style={styles.tempPrevision}>{Math.round(prevision.main.temp)}°C</Text>
+      <Text style={styles.descriptionPrevision}>{prevision.weather[0].description}</Text>
+      <Image source={{ uri: `https://openweathermap.org/img/wn/${prevision.weather[0].icon}@2x.png` }} style={styles.icone} />
     </View>
   );
 };
 
-const Loader = () => {
-  return <ActivityIndicator size="large" color="#ffffff" />;
-};
+const Chargement = () => <ActivityIndicator size="large" color="#ffffff" />;
 
 const Meteo = () => {
-  const [weatherData, setWeatherData] = useState(null);
-  const [forecastData, setForecastData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [city, setCity] = useState('');
-  const [searchingByCity, setSearchingByCity] = useState(false);
+  const [meteo, setMeteo] = useState(null);
+  const [previsions, setPrevisions] = useState([]);
+  const [chargement, setChargement] = useState(true);
+  const [ville, setVille] = useState('');
+  const [rechVille, setRechVille] = useState(false);
 
   useEffect(() => {
-    if (!searchingByCity) {
-      fetchWeatherData();
+    if (!rechVille) {
+      recupMeteo();
     }
-  }, [searchingByCity]);
+  }, [rechVille]);
 
-  const fetchLocation = async () => {
+  const getPos = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied');
-        return null;
-      }
+      if (status !== 'granted') return null;
 
-      const location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-      return { latitude, longitude };
-    } catch (error) {
-      console.error('Error getting location:', error);
+      const pos = await Location.getCurrentPositionAsync({});
+      return pos.coords;
+    } catch {
       return null;
     }
   };
 
-  const fetchWeatherData = async () => {
-    setIsLoading(true);
+  const recupMeteo = async () => {
+    setChargement(true);
     try {
-      const location = await fetchLocation();
-      if (location) {
-        const { latitude, longitude } = location;
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=f971c97baeeea5c409f72f5c1328bcf7&units=metric`
-        );
-        setWeatherData(response.data);
-        fetchWeatherForecast(latitude, longitude);
+      const pos = await getPos();
+      if (pos) {
+        const { latitude, longitude } = pos;
+        const res = await axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=f971c97baeeea5c409f72f5c1328bcf7&units=metric`);
+        setMeteo(res.data);
+        recupPrevision(latitude, longitude);
       }
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
     } finally {
-      setIsLoading(false);
+      setChargement(false);
     }
   };
 
-  const fetchWeatherByCity = async () => {
-    if (!city) return;
-    setIsLoading(true);
+  const rechMeteoVille = async () => {
+    if (!ville) return;
+    setChargement(true);
     try {
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=f971c97baeeea5c409f72f5c1328bcf7&units=metric`
-      );
-      setWeatherData(response.data);
-      setSearchingByCity(true);
-      fetchWeatherForecast(response.data.coord.lat, response.data.coord.lon);
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
+      const res = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${ville}&appid=f971c97baeeea5c409f72f5c1328bcf7&units=metric`);
+      setMeteo(res.data);
+      setRechVille(true);
+      recupPrevision(res.data.coord.lat, res.data.coord.lon);
     } finally {
-      setIsLoading(false);
+      setChargement(false);
     }
   };
 
-  const fetchWeatherForecast = async (latitude, longitude) => {
+  const recupPrevision = async (latitude, longitude) => {
     try {
-      const response = await axios.get(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=f971c97baeeea5c409f72f5c1328bcf7&units=metric`
-      );
-      setForecastData(response.data.list);
-    } catch (error) {
-      console.error('Error fetching forecast data:', error);
-    }
+      const res = await axios.get(`https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=f971c97baeeea5c409f72f5c1328bcf7&units=metric`);
+      setPrevisions(res.data.list);
+    } catch {}
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.searchContainer}>
+    <View style={styles.conteneur}>
+      <View style={styles.barreRecherche}>
         <TextInput
-          style={styles.input}
-          value={city}
-          onChangeText={setCity}
+          style={styles.champTexte}
+          value={ville}
+          onChangeText={setVille}
           placeholder="Rechercher une ville"
           placeholderTextColor="#ffffff88"
         />
-        <TouchableOpacity onPress={fetchWeatherByCity} style={styles.checkmarkButton}>
-          <Text style={styles.checkmark}> {'\u2713'} </Text>
+        <TouchableOpacity onPress={rechMeteoVille} style={styles.boutonValidation}>
+          <Text style={styles.validation}>✔</Text>
         </TouchableOpacity>
       </View>
 
-      {isLoading ? (
-        <Loader />
+      {chargement ? (
+        <Chargement />
       ) : (
-        weatherData && (
-          <ScrollView contentContainerStyle={styles.contentContainer}>
-            <WeatherCard weatherData={weatherData} />
-            <Text style={styles.forecastTitle}>Prévisions sur 5 jours :</Text>
+        meteo && (
+          <ScrollView contentContainerStyle={styles.contenu}>
+            <CarteMeteo dateMeteo={meteo} />
+            <Text style={styles.titrePrevisions}>Prévisions sur 5 jours :</Text>
             <FlatList
-              data={forecastData}
+              data={previsions}
               keyExtractor={(item) => item.dt_txt}
-              renderItem={({ item }) => <ForecastCard forecast={item} />}
+              renderItem={({ item }) => <CartePrevision prevision={item} />}
               horizontal
               showsHorizontalScrollIndicator={false}
             />
@@ -143,30 +124,30 @@ const Meteo = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
+  conteneur: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: 'black',
     paddingHorizontal: 20,
   },
-  searchContainer: {
+  barreRecherche: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 40, 
+    marginTop: 40,
     width: '100%',
   },
-  input: {
+  champTexte: {
     height: 40,
     borderColor: '#ffffff',
     borderWidth: 1,
     paddingHorizontal: 10,
     color: '#ffffff',
-    width: '80%', 
-    marginRight: 10, 
+    width: '80%',
+    marginRight: 10,
     borderRadius: 5,
   },
-  checkmarkButton: {
+  boutonValidation: {
     padding: 10,
     marginLeft: 10,
     backgroundColor: '#007BFF',
@@ -174,15 +155,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  checkmark: {
+  validation: {
     fontSize: 20,
     color: '#ffffff',
   },
-  weatherCard: {
+  carteMeteo: {
     alignItems: 'center',
     padding: 20,
   },
-  city: {
+  ville: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
@@ -199,34 +180,34 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     color: '#ffffff',
   },
-  icon: {
+  icone: {
     width: 100,
     height: 100,
   },
-  forecastTitle: {
+  titrePrevisions: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 16,
   },
-  forecastItem: {
+  elementPrevision: {
     marginRight: 20,
     alignItems: 'center',
   },
-  forecastTime: {
+  heurePrevision: {
     color: '#ffffff',
     fontSize: 16,
   },
-  forecastTemp: {
+  tempPrevision: {
     color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
   },
-  forecastDescription: {
+  descriptionPrevision: {
     color: '#ffffff',
     fontSize: 14,
   },
-  contentContainer: {
+  contenu: {
     alignItems: 'center',
     paddingHorizontal: 20,
     marginTop: 20,

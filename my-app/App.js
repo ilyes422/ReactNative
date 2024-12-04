@@ -8,7 +8,7 @@ import Meteo from './Meteo';
 
 const Stack = createStackNavigator();
 
-function PortalScreen({ navigation }) {
+function PortailApp({ navigation }) {
   return (
       <View style={styles.container}>
         <Text style={styles.title}>Portail d'Applications</Text>
@@ -34,7 +34,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Portail">
-        <Stack.Screen name="Portail" component={PortalScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Portail" component={PortailApp} options={{ headerShown: false }} />
         <Stack.Screen name="Objectifs" component={ListObj} />
         <Stack.Screen name="Meteo" component={Meteo} />
       </Stack.Navigator>
